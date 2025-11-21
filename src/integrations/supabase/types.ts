@@ -119,6 +119,55 @@ export type Database = {
           },
         ]
       }
+      identity_lockers: {
+        Row: {
+          complaint_id: string
+          real_student_id: string
+          reveal_reason: string | null
+          reveal_requested_by: string | null
+          reveal_status: string
+          revealed_at: string | null
+        }
+        Insert: {
+          complaint_id: string
+          real_student_id: string
+          reveal_reason?: string | null
+          reveal_requested_by?: string | null
+          reveal_status?: string
+          revealed_at?: string | null
+        }
+        Update: {
+          complaint_id?: string
+          real_student_id?: string
+          reveal_reason?: string | null
+          reveal_requested_by?: string | null
+          reveal_status?: string
+          revealed_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "identity_lockers_complaint_id_fkey"
+            columns: ["complaint_id"]
+            isOneToOne: true
+            referencedRelation: "complaints"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "identity_lockers_real_student_id_fkey"
+            columns: ["real_student_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "identity_lockers_reveal_requested_by_fkey"
+            columns: ["reveal_requested_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
@@ -127,7 +176,6 @@ export type Database = {
           id: string
           name: string
           phone: string | null
-          role: Database["public"]["Enums"]["user_role"]
           updated_at: string
         }
         Insert: {
@@ -137,7 +185,6 @@ export type Database = {
           id: string
           name: string
           phone?: string | null
-          role?: Database["public"]["Enums"]["user_role"]
           updated_at?: string
         }
         Update: {
@@ -147,19 +194,51 @@ export type Database = {
           id?: string
           name?: string
           phone?: string | null
-          role?: Database["public"]["Enums"]["user_role"]
           updated_at?: string
         }
         Relationships: []
+      }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_roles_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
+      app_role: "student" | "staff" | "admin"
       complaint_category:
         | "hostel"
         | "academic"
@@ -296,6 +375,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      app_role: ["student", "staff", "admin"],
       complaint_category: [
         "hostel",
         "academic",
